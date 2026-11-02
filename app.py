@@ -2,8 +2,8 @@ import streamlit as st
 import psycopg2
 import pandas as pd
 
-# Hier eure Supabase Session-Pooler URI eintragen (oder über st.secrets laden)
-DB_URI = "postgresql://postgres.xxxx:DEIN_PASSWORT@aws-0-eu-central-1.pooler.supabase.com:5432/postgres"
+# Supabase Session-Pooler URI über st.secrets laden
+DB_URI = st.secrets["DB_URI"]
 
 st.set_page_config(page_title="ZLMV Berlin - Backend Demo", layout="wide")
 st.title("⚽ ZLMV – Zentrales Ligamanagement- und Verbandssystem Berlin")
