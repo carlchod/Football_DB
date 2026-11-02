@@ -8,7 +8,7 @@ import streamlit as st
 # =====================================================================
 st.set_page_config(
     page_title="ZLMV 26 – Berliner Amateurfußball",
-    page_icon="⚽",
+    page_icon=":material/sports_soccer:",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -94,7 +94,7 @@ def init_views():
         k.art AS karte, 
         sp.anstoss_zeit::date AS spiel_datum,
         e.minute AS minute,
-        COALESCE(sk.vergehen, '⏳ Verfahren offen (Vorläufig 2 Spiele)') AS sportgericht_status,
+        COALESCE(sk.vergehen, 'Verfahren offen (vorläufig 2 Spiele)') AS sportgericht_status,
         COALESCE(u.sperre_spiele, 2) AS sperre_spiele, 
         COALESCE(u.tatsaechliche_geldstrafe, 0.00) AS geldstrafe_eur,
         CASE WHEN u.urteil_id IS NULL THEN false ELSE true END AS hat_urteil
@@ -159,315 +159,315 @@ def init_views():
 
 
 # =====================================================================
-# 2. FLIP7 DESIGN SYSTEM (CSS & UI-HELPER)
+# 2. FLAT DESIGN SYSTEM (CSS & UI-HELPER)
+#    Basis: design.md "Flat Design" – 2D, flache Farbflächen, keine
+#    Verläufe, scharfe Kanten, Systemschrift, Icons statt Emojis.
 # =====================================================================
 st.markdown(
     """
 <style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap');
+
 :root {
-    --primary-teal: #2BA8A2;
-    --primary-light: #3CC4BD;
-    --primary-dark: #1E8C86;
-    --primary-bg: #E8F6F5;
-    --accent-gold: #FFD23F;
-    --accent-light: #FFE47A;
-    --accent-dark: #E6B800;
-    --coral: #EF6C4A;
-    --coral-light: #FF8A6A;
-    --coral-dark: #D45233;
-    --cream: #FFF8E7;
-    --sky-blue: #5DADE2;
-    --surface-base: #EFF8F7;
-    --surface-card: #FFFFFF;
-    --success: #27AE60;
-    --error: #E74C3C;
+    /* Kernpalette (design.md) */
+    --ink: #1A1A1A;
+    --slate: #4A4A4A;
+    --accent: #0066FF;
+    --accent-hover: #005CE6;
+    --white: #FFFFFF;
+    /* Flächen & Linien */
+    --surface: #F5F6F8;
+    --accent-tint: #EAF2FF;
+    --line: #D5D9DF;
+    /* Semantik */
+    --error: #D64545;
+    --error-tint: #FDECEC;
+    --success: #1E9E5A;
+    --success-tint: #E8F6EE;
+    /* Elevation: nur funktional, nie schwerer als 0 2px 8px */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+    --shadow-hover: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
-/* App Background & Typography */
+/* App Background, Typography & Layout */
 .stApp {
-    background-color: var(--surface-base) !important;
-    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif !important;
-    color: #1A3A38;
+    background-color: var(--surface) !important;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--ink);
+}
+.block-container {
+    max-width: 1280px !important;
+    padding: 1.5rem 1.5rem 4rem 1.5rem !important;
 }
 
-h1, h2, h3, .flip-h1, .flip-h2, .flip-h3 {
-    font-weight: 800 !important;
-    letter-spacing: 1.5px !important;
-    color: var(--primary-dark) !important;
+h1, h2, h3, h4 {
+    font-weight: 700 !important;
+    letter-spacing: -0.01em !important;
+    color: var(--ink) !important;
+}
+h1 { font-size: 2.25rem !important; }
+h2 { font-size: 1.5rem !important; }
+h4 { font-size: 1.125rem !important; }
+
+code, kbd, pre {
+    font-family: var(--mono) !important;
+    font-size: 0.875em;
 }
 
-/* Keyframe Animations from flip7-card-game-DESIGN.md */
-@keyframes crownBounce {
-    0%, 100% { transform: translateY(0) rotate(-4deg); }
-    25% { transform: translateY(-6px) rotate(4deg); }
-    50% { transform: translateY(-2px) rotate(-2deg); }
-    75% { transform: translateY(-5px) rotate(3deg); }
+/* Label-Caps */
+.fd-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--slate);
 }
 
-@keyframes glowPulse {
-    0%, 100% { transform: scale(1.0); box-shadow: 0 4px 22px rgba(255, 210, 63, 0.45); }
-    50% { transform: scale(1.02); box-shadow: 0 8px 30px rgba(255, 210, 63, 0.75); }
+/* Entry Animation: Fade + translateY(16px -> 0), 420ms ease-out */
+@keyframes fdFadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes boomPulse {
-    0%, 100% { box-shadow: 0 4px 20px rgba(239, 108, 74, 0.35); border-left-color: #EF6C4A; }
-    50% { box-shadow: 0 6px 28px rgba(239, 108, 74, 0.75); border-left-color: #D45233; }
-}
-
-/* Flip7 Hero Logo Header */
-.flip7-hero-wrapper {
+/* Hero / Wordmark */
+.fd-hero {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 28px 16px 20px 16px;
-    margin-bottom: 18px;
-    position: relative;
-}
-
-.fan-cards-container {
-    position: relative;
-    height: 68px;
-    width: 240px;
-    margin-bottom: -36px;
-    z-index: 1;
-}
-
-.fan-card {
-    position: absolute;
-    left: 50%;
-    bottom: 0;
-    width: 48px;
-    height: 68px;
-    margin-left: -24px;
-    border-radius: 8px;
-    border: 2.5px solid #1A3A38;
-    transform-origin: bottom center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
-}
-.fan-card.c1 { background: #EF6C4A; transform: rotate(-24deg) translateX(-45px); }
-.fan-card.c2 { background: #FFD23F; transform: rotate(-12deg) translateX(-22px); }
-.fan-card.c3 { background: #2BA8A2; transform: rotate(0deg); }
-.fan-card.c4 { background: #5DADE2; transform: rotate(12deg) translateX(22px); }
-.fan-card.c5 { background: #FFE47A; transform: rotate(24deg) translateX(45px); }
-
-.flip7-logo-box {
-    position: relative;
-    z-index: 2;
-    background: var(--cream);
-    border: 3.5px solid #1A3A38;
-    border-radius: 16px;
-    padding: 8px 32px;
-    transform: rotate(-2deg) skewX(-6deg);
-    box-shadow: 0 8px 25px rgba(43, 168, 162, 0.25);
-    display: inline-flex;
-    align-items: baseline;
+    align-items: flex-start;
     gap: 8px;
+    padding: 24px 0 24px 0;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--line);
 }
-
-.flip7-logo-text {
-    font-size: 46px;
-    font-weight: 900;
-    color: var(--primary-dark);
-    letter-spacing: 4px;
-    text-shadow: 2px 2px 0px #FFFFFF, 3px 3px 0px rgba(30,140,134,0.25);
-}
-
-.flip7-logo-num {
-    font-size: 64px;
-    font-weight: 900;
-    color: var(--accent-gold);
-    display: inline-block;
-    transform: rotate(5deg);
-    text-shadow: -2px -2px 0 #1A3A38, 2px -2px 0 #1A3A38, -2px 2px 0 #1A3A38, 3px 4px 0 #1A3A38;
+.fd-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
     line-height: 1;
 }
-
-.flip7-ribbon {
-    position: relative;
-    z-index: 3;
-    margin-top: -8px;
-    background: var(--cream);
-    border: 2.5px solid #1A3A38;
-    border-radius: 8px;
-    padding: 6px 28px;
-    font-weight: 800;
-    font-size: 13px;
-    color: var(--primary-dark);
-    letter-spacing: 3.5px;
-    text-transform: uppercase;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+.fd-logo-text {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+}
+.fd-logo-num {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--white);
+    background: var(--accent);
+    padding: 4px 14px;
 }
 
-/* Section Titles with Emoji View + 3px Dashed Border */
-.flip7-section-title {
+/* Section Titles: Icon-Quadrat + 1px Linie */
+.fd-section-title {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding-bottom: 10px;
-    margin: 20px 0 16px 0;
-    border-bottom: 3px dashed var(--primary-light);
+    padding-bottom: 12px;
+    margin: 24px 0 16px 0;
+    border-bottom: 1px solid var(--line);
 }
-.flip7-emoji-box {
+.fd-icon-box {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 38px;
-    height: 38px;
-    background: var(--cream);
-    border: 2px solid var(--primary-dark);
-    border-radius: 12px;
-    font-size: 20px;
-    box-shadow: 0 2px 8px rgba(43, 168, 162, 0.2);
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    background: var(--accent);
+    color: var(--white);
+    border-radius: 0;
 }
-.flip7-section-text {
-    font-size: 22px;
-    font-weight: 800;
-    color: var(--primary-dark);
-    letter-spacing: 1.5px;
+.fd-section-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ink);
 }
-
-/* Flip7 Cards */
-.flip7-card {
-    background: var(--surface-card);
-    border-radius: 16px;
-    padding: 18px 20px;
-    margin-bottom: 14px;
-    border-left: 6px solid var(--primary-light);
-    box-shadow: 0 4px 20px rgba(43, 168, 162, 0.12);
-    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.flip7-card:hover {
-    transform: translateY(-2px);
-}
-.flip7-card.gold {
-    border-left: 8px solid var(--accent-gold);
-    background: linear-gradient(135deg, #FFFFFF 0%, #FFFDF5 65%, #FFF3C4 100%);
-    animation: glowPulse 2.5s infinite;
-}
-.flip7-card.silver {
-    border-left: 8px solid #95A5A6;
-    background: linear-gradient(135deg, #FFFFFF 0%, #F8F9F9 100%);
-    box-shadow: 0 4px 18px rgba(149, 165, 166, 0.22);
-}
-.flip7-card.bronze {
-    border-left: 8px solid var(--coral);
-    background: linear-gradient(135deg, #FFFFFF 0%, #FFF5F2 100%);
-    box-shadow: 0 4px 20px rgba(239, 108, 74, 0.25);
-}
-.flip7-card.boom {
-    border-left: 8px solid var(--coral);
-    background: linear-gradient(135deg, #FFF5F2 0%, #FFE4DC 100%);
-    animation: boomPulse 2s infinite;
-}
-.flip7-card.sky {
-    border-left: 6px solid var(--sky-blue);
-    background: linear-gradient(135deg, #FFFFFF 0%, #F2F9FD 100%);
-    box-shadow: 0 4px 16px rgba(93, 173, 226, 0.25);
-}
-.flip7-card.success {
-    border-left: 6px solid var(--success);
-    background: linear-gradient(135deg, #FFFFFF 0%, #F0FBF4 100%);
-    box-shadow: 0 4px 18px rgba(39, 174, 96, 0.25);
-}
-
-/* Badges & Pills */
-.flip7-badge {
+.fd-ico {
     display: inline-block;
-    padding: 4px 12px;
-    border-radius: 999px;
-    font-weight: 800;
-    font-size: 12px;
-    letter-spacing: 0.8px;
+    vertical-align: middle;
+    flex-shrink: 0;
 }
-.badge-teal { background: var(--primary-bg); color: var(--primary-dark); border: 1.5px solid var(--primary-light); }
-.badge-gold { background: var(--accent-light); color: #5C4800; border: 1.5px solid var(--accent-dark); }
-.badge-coral { background: #FFE4DC; color: var(--coral-dark); border: 1.5px solid var(--coral); }
-.badge-sky { background: #EBF5FB; color: #1B4F72; border: 1.5px solid var(--sky-blue); }
 
-/* Crown Animation */
-.crown-icon {
+/* Cards: scharfe Kanten, 1px Rahmen, flache Fläche */
+.fd-card {
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--line);
+    border-radius: 0;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-sm);
+    animation: fdFadeUp 420ms ease-out both;
+    transition: opacity 200ms ease, transform 200ms ease;
+}
+.fd-card.gold    { border-left-color: var(--accent); background: var(--accent-tint); }
+.fd-card.silver  { border-left-color: var(--slate); }
+.fd-card.bronze  { border-left-color: #8A9099; }
+.fd-card.boom    { border-left-color: var(--error); background: var(--error-tint); }
+.fd-card.sky     { border-left-color: var(--accent); }
+.fd-card.success { border-left-color: var(--success); background: var(--success-tint); }
+
+/* Badges: flache Label-Chips */
+.fd-badge {
     display: inline-block;
-    animation: crownBounce 1.5s infinite;
-    font-size: 26px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-weight: 500;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
 }
+.badge-accent { background: var(--accent-tint); color: var(--accent); border: 1px solid var(--accent); }
+.badge-solid  { background: var(--accent); color: var(--white); border: 1px solid var(--accent); }
+.badge-error  { background: var(--error-tint); color: var(--error); border: 1px solid var(--error); }
 
-/* Pill Buttons (Gold CTA) */
+/* Buttons (Primary): Akzent-Fläche, 0px Radius */
 .stButton > button, .stFormSubmitButton > button {
-    border-radius: 999px !important;
-    min-height: 46px !important;
-    background: linear-gradient(180deg, #FFE47A 0%, #FFD23F 55%, #E6B800 100%) !important;
-    color: #1A3A38 !important;
-    font-weight: 800 !important;
-    letter-spacing: 1.2px !important;
-    border: 2px solid #1A3A38 !important;
-    box-shadow: 0 4px 20px rgba(255, 210, 63, 0.45) !important;
-    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    border-radius: 0 !important;
+    min-height: 44px !important;
+    background: var(--accent) !important;
+    color: var(--white) !important;
+    font-weight: 600 !important;
+    border: 1px solid var(--accent) !important;
+    box-shadow: none !important;
     padding: 0 24px !important;
+    transition: background-color 180ms ease, box-shadow 180ms ease, transform 180ms ease !important;
+}
+.stButton > button p, .stFormSubmitButton > button p {
+    color: var(--white) !important;
+    font-weight: 600 !important;
 }
 .stButton > button:hover, .stFormSubmitButton > button:hover {
-    transform: translateY(-2px) scale(1.02) !important;
-    box-shadow: 0 6px 24px rgba(255, 210, 63, 0.65) !important;
+    background: var(--accent-hover) !important;
+    border-color: var(--accent-hover) !important;
+    box-shadow: var(--shadow-hover) !important;
+    transform: translateY(-1px) !important;
 }
 .stButton > button:active, .stFormSubmitButton > button:active {
-    transform: scale(0.95) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: none !important;
+}
+.stButton > button:focus-visible, .stFormSubmitButton > button:focus-visible {
+    outline: 2px solid var(--accent) !important;
+    outline-offset: 2px !important;
 }
 
-/* Cream Input Surfaces (#FFF8E7) */
+/* Inputs: weiß, 1px Rahmen, Fokus-Ring 2px Akzent mit 2px Abstand */
 div[data-baseweb="select"] > div,
 div[data-baseweb="input"] > div,
 div[data-baseweb="base-input"],
 .stTextInput input, .stNumberInput input, .stDateInput input {
-    background-color: var(--cream) !important;
-    border-radius: 12px !important;
-    border: 2px solid var(--primary-light) !important;
-    font-weight: 600 !important;
-    color: #1A3A38 !important;
+    background-color: var(--white) !important;
+    border-radius: 2px !important;
+    border: 1px solid var(--slate) !important;
+    font-weight: 400 !important;
+    color: var(--ink) !important;
+    box-shadow: none !important;
 }
 div[data-baseweb="select"] > div:focus-within,
 div[data-baseweb="input"] > div:focus-within {
-    box-shadow: 0 0 0 4px rgba(43, 168, 162, 0.2) !important;
-    border-color: var(--primary-dark) !important;
+    outline: 2px solid var(--accent) !important;
+    outline-offset: 2px !important;
+    border-color: var(--accent) !important;
+}
+.stSelectbox label, .stTextInput label, .stNumberInput label, .stCheckbox label, .stSlider label {
+    font-weight: 500 !important;
+    color: var(--ink) !important;
 }
 
-/* Tabs Styling as Tactile Game Pieces */
+/* Tabs: flache Unterstreichung mit Akzent-Indikator */
 .stTabs [data-baseweb="tab-list"] {
-    gap: 10px;
-    background-color: var(--primary-bg);
-    padding: 8px 12px;
-    border-radius: 999px;
-    border: 2px solid var(--primary-light);
+    gap: 8px;
+    background: transparent;
+    padding: 0;
+    border-bottom: 1px solid var(--line);
 }
 .stTabs [data-baseweb="tab"] {
-    border-radius: 999px !important;
-    padding: 8px 18px !important;
-    font-weight: 800 !important;
-    color: var(--primary-dark) !important;
+    border-radius: 0 !important;
+    padding: 12px 16px !important;
+    font-weight: 500 !important;
+    color: var(--slate) !important;
+    background: transparent !important;
     border: none !important;
+    transition: color 180ms ease !important;
+}
+.stTabs [data-baseweb="tab"]:hover {
+    color: var(--accent) !important;
 }
 .stTabs [aria-selected="true"] {
-    background: var(--primary-teal) !important;
-    color: #FFFFFF !important;
-    box-shadow: 0 4px 14px rgba(43, 168, 162, 0.35) !important;
+    color: var(--accent) !important;
+    font-weight: 600 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+.stTabs [data-baseweb="tab-highlight"] {
+    background-color: var(--accent) !important;
+    height: 3px !important;
+}
+.stTabs [data-baseweb="tab-border"] {
+    display: none !important;
 }
 
-/* Sidebar Styling */
+/* Sidebar */
 section[data-testid="stSidebar"] {
-    background-color: var(--primary-bg) !important;
-    border-right: 3px dashed var(--primary-light) !important;
+    background-color: var(--white) !important;
+    border-right: 1px solid var(--line) !important;
+}
+
+/* Tabellen: eckig */
+[data-testid="stDataFrame"] {
+    border: 1px solid var(--line);
+    border-radius: 0 !important;
+}
+hr { border-color: var(--line) !important; }
+
+/* Mobile: Spalten untereinander unter 768px */
+@media (max-width: 768px) {
+    .fd-logo-text, .fd-logo-num { font-size: 2.5rem; }
+    .block-container { padding: 1rem 1.5rem 3rem 1.5rem !important; }
 }
 </style>
 """,
     unsafe_allow_html=True,
 )
 
+# Lucide-Icons (inline SVG, Strichstärke 2, keine Emojis in der UI)
+ICONS = {
+    "trophy": '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
+    "clipboard": '<rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/>',
+    "ban": '<circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/>',
+    "grid": '<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>',
+    "scale": '<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>',
+    "zap": '<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>',
+    "check": '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+    "crown": '<path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"/><path d="M5 21h14"/>',
+    "medal": '<path d="M7.21 15 2.66 7.14a2 2 0 0 1 .13-2.2L4.4 2.8A2 2 0 0 1 6 2h12a2 2 0 0 1 1.6.8l1.6 2.14a2 2 0 0 1 .14 2.2L16.79 15"/><path d="M11 12 5.12 2.2"/><path d="m13 12 5.88-9.8"/><path d="M8 7h8"/><circle cx="12" cy="17" r="5"/>',
+    "alert": '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+    "user": '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+}
 
-def section_title(emoji: str, text: str):
+
+def ico(name: str, size: int = 18, color: str = "currentColor") -> str:
+    return (
+        f'<svg class="fd-ico" xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" '
+        f'viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" '
+        f'stroke-linecap="round" stroke-linejoin="round">{ICONS[name]}</svg>'
+    )
+
+
+def section_title(icon: str, text: str):
     st.markdown(
         f"""
-    <div class="flip7-section-title">
-        <div class="flip7-emoji-box">{emoji}</div>
-        <div class="flip7-section-text">{text}</div>
+    <div class="fd-section-title">
+        <div class="fd-icon-box">{ico(icon, 18, '#FFFFFF')}</div>
+        <div class="fd-section-text">{text}</div>
     </div>
     """,
         unsafe_allow_html=True,
@@ -477,13 +477,13 @@ def section_title(emoji: str, text: str):
 def boom_alert(title: str, pg_error: str):
     st.markdown(
         f"""
-    <div class="flip7-card boom">
-        <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-            <span style="font-size:26px;">💥</span>
-            <span style="font-weight:900; font-size:18px; color:#D45233; letter-spacing:1px;">{title}</span>
-            <span class="flip7-badge badge-coral">SQL BLOCKED</span>
+    <div class="fd-card boom">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
+            {ico('alert', 22, '#D64545')}
+            <span style="font-weight:700; font-size:1.125rem; color:#D64545;">{title}</span>
+            <span class="fd-badge badge-error">SQL BLOCKED</span>
         </div>
-        <code style="display:block; background:#FFF8E7; padding:10px 14px; border-radius:10px; color:#A93226; font-weight:700; border:1.5px dashed #EF6C4A; white-space:pre-wrap;">{pg_error}</code>
+        <code style="display:block; background:#FFFFFF; padding:10px 14px; border-radius:2px; color:#D64545; font-weight:600; border:1px solid #D64545; white-space:pre-wrap;">{pg_error}</code>
     </div>
     """,
         unsafe_allow_html=True,
@@ -493,12 +493,12 @@ def boom_alert(title: str, pg_error: str):
 def success_card(title: str, msg: str):
     st.markdown(
         f"""
-    <div class="flip7-card success">
-        <div style="display:flex; align-items:center; gap:10px;">
-            <span style="font-size:24px;">🎉</span>
+    <div class="fd-card success">
+        <div style="display:flex; align-items:center; gap:12px;">
+            {ico('check', 24, '#1E9E5A')}
             <div>
-                <div style="font-weight:900; font-size:17px; color:#1E8449;">{title}</div>
-                <div style="font-size:14px; color:#1A3A38;">{msg}</div>
+                <div style="font-weight:700; font-size:1.0625rem; color:#1E9E5A;">{title}</div>
+                <div style="font-size:0.875rem; color:#1A1A1A;">{msg}</div>
             </div>
         </div>
     </div>
@@ -512,19 +512,12 @@ def success_card(title: str, msg: str):
 # =====================================================================
 st.markdown(
     """
-<div class="flip7-hero-wrapper">
-    <div class="fan-cards-container">
-        <div class="fan-card c1"></div>
-        <div class="fan-card c2"></div>
-        <div class="fan-card c3"></div>
-        <div class="fan-card c4"></div>
-        <div class="fan-card c5"></div>
+<div class="fd-hero">
+    <span class="fd-label">Berliner Amateurfußball · 3NF SQL Backend</span>
+    <div class="fd-logo">
+        <span class="fd-logo-text">ZLMV</span>
+        <span class="fd-logo-num">26</span>
     </div>
-    <div class="flip7-logo-box">
-        <span class="flip7-logo-text">ZLMV</span>
-        <span class="flip7-logo-num">26</span>
-    </div>
-    <div class="flip7-ribbon">Berliner Amateurfußball · 3NF SQL Backend</div>
 </div>
 """,
     unsafe_allow_html=True,
@@ -552,38 +545,38 @@ except Exception as db_err:
 with st.sidebar:
     st.markdown(
         """
-    <div style="text-align:center; padding: 10px 0;">
-        <span class="flip7-badge badge-gold">SAISON 2026/27 · STICHTAG 02.11.2026</span>
+    <div style="padding: 10px 0;">
+        <span class="fd-badge badge-solid">SAISON 2026/27 · STICHTAG 02.11.2026</span>
     </div>
     """,
         unsafe_allow_html=True,
     )
-    section_title("⚡", "Live-DB Status")
+    section_title("zap", "Live-DB Status")
 
     st.markdown(
         f"""
-    <div class="flip7-card">
-        <div style="font-size:13px; font-weight:700; color:#1E8C86;">VEREINE & TEAMS</div>
-        <div style="font-size:26px; font-weight:900;">{kpis['vereine']} <span style="font-size:15px; color:#2BA8A2;">Vereine ({kpis['teams']} Teams)</span></div>
+    <div class="fd-card">
+        <div class="fd-label">Vereine &amp; Teams</div>
+        <div style="font-size:1.625rem; font-weight:700;">{kpis['vereine']} <span style="font-size:0.9375rem; font-weight:500; color:#4A4A4A;">Vereine ({kpis['teams']} Teams)</span></div>
     </div>
-    <div class="flip7-card">
-        <div style="font-size:13px; font-weight:700; color:#1E8C86;">AKTEURE IN 3NF</div>
-        <div style="font-size:26px; font-weight:900;">{kpis['spieler']} <span style="font-size:15px; color:#2BA8A2;">Spieler · {kpis['schiris']} Schiris</span></div>
+    <div class="fd-card">
+        <div class="fd-label">Akteure in 3NF</div>
+        <div style="font-size:1.625rem; font-weight:700;">{kpis['spieler']} <span style="font-size:0.9375rem; font-weight:500; color:#4A4A4A;">Spieler · {kpis['schiris']} Schiris</span></div>
     </div>
-    <div class="flip7-card">
-        <div style="font-size:13px; font-weight:700; color:#1E8C86;">SPIELBETRIEB</div>
-        <div style="font-size:26px; font-weight:900;">{kpis['gespielt']} <span style="font-size:15px; color:#2BA8A2;">/ {kpis['spiele_gesamt']} gespielt</span></div>
+    <div class="fd-card">
+        <div class="fd-label">Spielbetrieb</div>
+        <div style="font-size:1.625rem; font-weight:700;">{kpis['gespielt']} <span style="font-size:0.9375rem; font-weight:500; color:#4A4A4A;">/ {kpis['spiele_gesamt']} gespielt</span></div>
     </div>
-    <div class="flip7-card">
-        <div style="font-size:13px; font-weight:700; color:#1E8C86;">LIVE-EREIGNISSE</div>
-        <div style="font-size:22px; font-weight:900;">⚽ {kpis['tore']} · 🟨🟥 {kpis['karten']} · ⚖️ {kpis['urteile']}</div>
+    <div class="fd-card">
+        <div class="fd-label">Live-Ereignisse</div>
+        <div style="font-size:1.125rem; font-weight:700;">{kpis['tore']} <span style="font-size:0.875rem; font-weight:500; color:#4A4A4A;">Tore</span> · {kpis['karten']} <span style="font-size:0.875rem; font-weight:500; color:#4A4A4A;">Karten</span> · {kpis['urteile']} <span style="font-size:0.875rem; font-weight:500; color:#4A4A4A;">Urteile</span></div>
     </div>
     """,
         unsafe_allow_html=True,
     )
 
     st.markdown("---")
-    if st.button("🔄 Views & Cache aktualisieren"):
+    if st.button(":material/refresh: Views & Cache aktualisieren"):
         st.cache_resource.clear()
         st.rerun()
 
@@ -592,11 +585,11 @@ with st.sidebar:
 # =====================================================================
 tab1, tab2, tab3, tab4, tab5 = st.tabs(
     [
-        "🏆 1. Ligazentrale & Podium",
-        "📋 2. Match-Center & Live-Ticker",
-        "🚫 3. Aufstellung & Sperr-Trigger",
-        "🏟️ 4. Platz- & Pass-Wächter",
-        "⚖️ 5. Sportgericht & 25-Regel-Audit",
+        ":material/emoji_events: 1. Ligazentrale & Podium",
+        ":material/assignment: 2. Match-Center & Live-Ticker",
+        ":material/block: 3. Aufstellung & Sperr-Trigger",
+        ":material/stadium: 4. Platz- & Pass-Wächter",
+        ":material/gavel: 5. Sportgericht & 25-Regel-Audit",
     ]
 )
 
@@ -604,7 +597,7 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs(
 # TAB 1: LIGAZENTRALE, PODIUM & TORJÄGER (VIEWS)
 # ---------------------------------------------------------------------
 with tab1:
-    section_title("🏆", "Use-Case 1: Live-Ligazentrale (100% 3NF-Berechnung)")
+    section_title("trophy", "Use-Case 1: Live-Ligazentrale (100% 3NF-Berechnung)")
 
     staffeln_df = run_query(
         "SELECT DISTINCT staffel_id, liga_name FROM v_ligatabelle ORDER BY staffel_id;"
@@ -612,7 +605,7 @@ with tab1:
     col_sel, col_info = st.columns([1, 2])
     with col_sel:
         liga_auswahl = st.selectbox(
-            "⚽ Spielklasse & Staffel wählen:", staffeln_df["liga_name"]
+            "Spielklasse & Staffel wählen:", staffeln_df["liga_name"]
         )
         akt_staffel_id = int(
             staffeln_df.loc[
@@ -622,9 +615,9 @@ with tab1:
     with col_info:
         st.markdown(
             """
-        <div class="flip7-card sky" style="margin-top:6px;">
-            <span class="flip7-badge badge-sky">SQL VIEW: v_ligatabelle</span>
-            <div style="margin-top:6px; font-size:14px; font-weight:600;">
+        <div class="fd-card sky" style="margin-top:6px;">
+            <span class="fd-badge badge-accent">SQL VIEW: v_ligatabelle</span>
+            <div style="margin-top:8px; font-size:0.875rem; font-weight:500;">
                 In der Tabelle <code>spiel</code> existieren keine Spalten für das Endergebnis. Jedes Tor wird einzeln in <code>tor</code> gespeichert und hier live aggregiert – inklusive automatischer Verrechnung von <code>punkteabzug</code>.
             </div>
         </div>
@@ -640,22 +633,22 @@ with tab1:
         (akt_staffel_id,),
     )
 
-    # FLIP7 VICTORY PODIUM (Top 3 Teams)
+    # PODIUM (Top 3 Teams)
     if len(df_tab) >= 3:
         p1, p2, p3 = df_tab.iloc[0], df_tab.iloc[1], df_tab.iloc[2]
         c_p1, c_p2, c_p3 = st.columns(3)
         with c_p1:
             st.markdown(
                 f"""
-            <div class="flip7-card gold">
+            <div class="fd-card gold">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span class="flip7-badge badge-gold">PLATZ #1 · TABELLENFÜHRER</span>
-                    <span class="crown-icon">👑</span>
+                    <span class="fd-badge badge-solid">Platz #1 · Tabellenführer</span>
+                    {ico('crown', 24, '#0066FF')}
                 </div>
-                <div style="font-size:22px; font-weight:900; color:#1E8C86; margin:8px 0;">{p1['mannschaft']}</div>
+                <div style="font-size:1.375rem; font-weight:700; color:#1A1A1A; margin:8px 0;">{p1['mannschaft']}</div>
                 <div style="display:flex; justify-content:space-between; align-items:baseline;">
-                    <span style="font-size:32px; font-weight:900; color:#E6B800; text-shadow:1px 1px 0 #1A3A38;">{p1['punkte']} Pkt.</span>
-                    <span style="font-weight:700; font-size:14px;">{p1['tore']} Tore ({p1['s']}S-{p1['u']}U-{p1['n']}N)</span>
+                    <span style="font-size:2rem; font-weight:700; color:#0066FF;">{p1['punkte']} Pkt.</span>
+                    <span style="font-weight:500; font-size:0.875rem; color:#4A4A4A;">{p1['tore']} Tore ({p1['s']}S-{p1['u']}U-{p1['n']}N)</span>
                 </div>
             </div>
             """,
@@ -664,15 +657,15 @@ with tab1:
         with c_p2:
             st.markdown(
                 f"""
-            <div class="flip7-card silver">
+            <div class="fd-card silver">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span class="flip7-badge badge-teal">PLATZ #2 · VERFOLGER</span>
-                    <span style="font-size:24px;">🥈</span>
+                    <span class="fd-badge badge-accent">Platz #2 · Verfolger</span>
+                    {ico('medal', 24, '#4A4A4A')}
                 </div>
-                <div style="font-size:20px; font-weight:800; color:#1E8C86; margin:8px 0;">{p2['mannschaft']}</div>
+                <div style="font-size:1.25rem; font-weight:700; color:#1A1A1A; margin:8px 0;">{p2['mannschaft']}</div>
                 <div style="display:flex; justify-content:space-between; align-items:baseline;">
-                    <span style="font-size:28px; font-weight:900; color:#566573;">{p2['punkte']} Pkt.</span>
-                    <span style="font-weight:700; font-size:14px;">{p2['tore']} Tore ({p2['s']}S-{p2['u']}U-{p2['n']}N)</span>
+                    <span style="font-size:1.75rem; font-weight:700; color:#4A4A4A;">{p2['punkte']} Pkt.</span>
+                    <span style="font-weight:500; font-size:0.875rem; color:#4A4A4A;">{p2['tore']} Tore ({p2['s']}S-{p2['u']}U-{p2['n']}N)</span>
                 </div>
             </div>
             """,
@@ -681,15 +674,15 @@ with tab1:
         with c_p3:
             st.markdown(
                 f"""
-            <div class="flip7-card bronze">
+            <div class="fd-card bronze">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span class="flip7-badge badge-coral">PLATZ #3 · PODIUM</span>
-                    <span style="font-size:24px;">🥉</span>
+                    <span class="fd-badge badge-accent">Platz #3 · Podium</span>
+                    {ico('medal', 24, '#8A9099')}
                 </div>
-                <div style="font-size:20px; font-weight:800; color:#1E8C86; margin:8px 0;">{p3['mannschaft']}</div>
+                <div style="font-size:1.25rem; font-weight:700; color:#1A1A1A; margin:8px 0;">{p3['mannschaft']}</div>
                 <div style="display:flex; justify-content:space-between; align-items:baseline;">
-                    <span style="font-size:28px; font-weight:900; color:#EF6C4A;">{p3['punkte']} Pkt.</span>
-                    <span style="font-weight:700; font-size:14px;">{p3['tore']} Tore ({p3['s']}S-{p3['u']}U-{p3['n']}N)</span>
+                    <span style="font-size:1.75rem; font-weight:700; color:#1A1A1A;">{p3['punkte']} Pkt.</span>
+                    <span style="font-weight:500; font-size:0.875rem; color:#4A4A4A;">{p3['tore']} Tore ({p3['s']}S-{p3['u']}U-{p3['n']}N)</span>
                 </div>
             </div>
             """,
@@ -698,11 +691,11 @@ with tab1:
 
     col_table, col_scorers = st.columns([3, 2])
     with col_table:
-        st.markdown("#### 📊 Gesamte Staffel-Tabelle")
+        st.markdown("#### Gesamte Staffel-Tabelle")
         st.dataframe(df_tab, use_container_width=True, hide_index=True)
 
     with col_scorers:
-        st.markdown("#### 🎯 Top-Torjäger & Fair-Play der Staffel")
+        st.markdown("#### Top-Torjäger & Fair-Play der Staffel")
         df_torjaeger = run_query(
             """
             SELECT p.vorname || ' ' || p.nachname AS spieler,
@@ -731,7 +724,7 @@ with tab1:
 # ---------------------------------------------------------------------
 with tab2:
     section_title(
-        "📋", "Use-Case 2: Digitaler Spielberichtsbogen & Live-Tor-Simulator"
+        "clipboard", "Use-Case 2: Digitaler Spielberichtsbogen & Live-Tor-Simulator"
     )
 
     col_m1, col_m2 = st.columns([1, 2])
@@ -821,16 +814,16 @@ with tab2:
     # Scoreboard Card
     st.markdown(
         f"""
-    <div class="flip7-card gold" style="text-align:center; padding:24px;">
-        <span class="flip7-badge badge-teal">SPIEL-ID #{akt_spiel_id} · {akt_spiel['ort']}</span>
-        <div style="display:flex; justify-content:center; align-items:center; gap:32px; margin:14px 0;">
-            <div style="font-size:24px; font-weight:900; color:#1E8C86; flex:1; text-align:right;">{akt_spiel['heim_name']}</div>
-            <div style="background:#FFF8E7; border:3px solid #1A3A38; border-radius:16px; padding:8px 26px; font-size:38px; font-weight:900; color:#1A3A38;">
+    <div class="fd-card gold" style="text-align:center; padding:24px;">
+        <span class="fd-badge badge-solid">Spiel-ID #{akt_spiel_id} · {akt_spiel['ort']}</span>
+        <div style="display:flex; justify-content:center; align-items:center; gap:32px; margin:16px 0;">
+            <div style="font-size:1.5rem; font-weight:700; color:#1A1A1A; flex:1; text-align:right;">{akt_spiel['heim_name']}</div>
+            <div style="background:#1A1A1A; border-radius:0; padding:8px 24px; font-size:2.25rem; font-weight:700; color:#FFFFFF;">
                 {score_df['tore_heim']} : {score_df['tore_gast']}
             </div>
-            <div style="font-size:24px; font-weight:900; color:#1E8C86; flex:1; text-align:left;">{akt_spiel['gast_name']}</div>
+            <div style="font-size:1.5rem; font-weight:700; color:#1A1A1A; flex:1; text-align:left;">{akt_spiel['gast_name']}</div>
         </div>
-        <div style="font-size:13px; font-weight:700; color:#566573;">🕴️ {sr_text}</div>
+        <div style="font-size:0.875rem; font-weight:500; color:#4A4A4A; display:flex; justify-content:center; align-items:center; gap:8px;">{ico('user', 16, '#4A4A4A')} {sr_text}</div>
     </div>
     """,
         unsafe_allow_html=True,
@@ -839,11 +832,11 @@ with tab2:
     col_events, col_sim = st.columns([3, 2])
     with col_events:
         st.markdown(
-            "#### ⏱️ Chronologische Spielereignisse (Subtyping: Tor, Karte, Wechsel)"
+            "#### Chronologische Spielereignisse (Subtyping: Tor, Karte, Wechsel)"
         )
         df_timeline = run_query(
             """
-            SELECT e.minute || '''' AS min, '⚽ TOR' AS typ,
+            SELECT e.minute || '''' AS min, 'TOR' AS typ,
                    p.vorname || ' ' || p.nachname || ' (#' || k.rueckennummer || ')' AS akteur,
                    v.name AS team
             FROM spielereignis e
@@ -857,7 +850,7 @@ with tab2:
             WHERE e.spiel_id = %s
             UNION ALL
             SELECT e.minute || '''', 
-                   CASE WHEN ka.art = 'Rot' THEN '🟥 ROT' WHEN ka.art = 'Gelb-Rot' THEN '🟨🟥 GELB-ROT' ELSE '🟨 GELB' END,
+                   CASE WHEN ka.art = 'Rot' THEN 'ROT' WHEN ka.art = 'Gelb-Rot' THEN 'GELB-ROT' ELSE 'GELB' END,
                    p.vorname || ' ' || p.nachname || ' (#' || k.rueckennummer || ')',
                    v.name
             FROM spielereignis e
@@ -870,8 +863,8 @@ with tab2:
             JOIN verein v ON v.verein_id = m.verein_id
             WHERE e.spiel_id = %s
             UNION ALL
-            SELECT e.minute || '''', '🔄 WECHSEL',
-                   '🟢 ' || p_in.nachname || ' für 🔴 ' || p_out.nachname,
+            SELECT e.minute || '''', 'WECHSEL',
+                   'Rein: ' || p_in.nachname || ' für Raus: ' || p_out.nachname,
                    v.name
             FROM spielereignis e
             JOIN wechsel w ON w.spielereignis_id = e.spielereignis_id
@@ -892,7 +885,7 @@ with tab2:
         st.dataframe(df_timeline, use_container_width=True, hide_index=True)
 
     with col_sim:
-        st.markdown("#### ⚡ Live-Tor eintragen (3NF Beweis)")
+        st.markdown("#### Live-Tor eintragen (3NF Beweis)")
         kader_spiel_df = run_query(
             """
             SELECT stk.spieltag_kader_id,
@@ -919,7 +912,7 @@ with tab2:
                 kader_spiel_df["spieler_label"],
             )
             tor_minute = st.slider("Spielminute:", min_value=1, max_value=95, value=89)
-            if st.form_submit_button("⚽ Tor jetzt live in DB verbuchen!"):
+            if st.form_submit_button(":material/sports_soccer: Tor jetzt live in DB verbuchen!"):
                 stk_id = int(
                     kader_spiel_df.loc[
                         kader_spiel_df["spieler_label"] == schuetze_sel,
@@ -954,7 +947,7 @@ with tab2:
 # ---------------------------------------------------------------------
 with tab3:
     section_title(
-        "🚫",
+        "ban",
         "Use-Case 3: Spieltags-Aufstellung & Trigger (Sperren durchsetzen)",
     )
 
@@ -962,9 +955,9 @@ with tab3:
 
     st.markdown(
         """
-    <div class="flip7-card sky">
-        <span class="flip7-badge badge-sky">SQL TRIGGER: blockiere_gesperrte_spieler</span>
-        <div style="margin-top:6px; font-size:14px; font-weight:600;">
+    <div class="fd-card sky">
+        <span class="fd-badge badge-accent">SQL TRIGGER: blockiere_gesperrte_spieler</span>
+        <div style="margin-top:8px; font-size:0.875rem; font-weight:500;">
             Feuert <code>BEFORE INSERT OR UPDATE OF spiel_id, kader_id ON spieltag_kader</code>. Der Trigger prüft in Echtzeit über <code>urteil</code>, wie viele Spiele die Mannschaft seit der Roten Karte bereits bestritten hat. Ist <code>abgesessen &lt; sperre_spiele</code>, blockiert PostgreSQL die Nominierung!
         </div>
     </div>
@@ -974,20 +967,20 @@ with tab3:
 
     col_sp1, col_sp2 = st.columns([3, 2])
     with col_sp1:
-        st.markdown("#### 🚨 Aktuell durch Sportgerichtsurteil gesperrte Spieler")
+        st.markdown("#### Aktuell durch Sportgerichtsurteil gesperrte Spieler")
         if not df_sperren.empty:
             for _, row in df_sperren.iterrows():
                 st.markdown(
                     f"""
-                <div class="flip7-card boom">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-weight:900; font-size:18px; color:#D45233;">🚫 {row['spieler']} ({row['mannschaft']})</span>
-                        <span class="flip7-badge badge-coral">NOCH {row['rest_sperre_spiele']} SPIEL(E) GESPERRT</span>
+                <div class="fd-card boom">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+                        <span style="font-weight:700; font-size:1.125rem; color:#D64545; display:inline-flex; align-items:center; gap:8px;">{ico('ban', 20, '#D64545')} {row['spieler']} ({row['mannschaft']})</span>
+                        <span class="fd-badge badge-error">Noch {row['rest_sperre_spiele']} Spiel(e) gesperrt</span>
                     </div>
-                    <div style="font-size:14px; font-weight:700; margin-top:6px; color:#1A3A38;">
-                        📌 Vergehen: <b>{row['grund']}</b> ({row['gesamt_sperre']} Spiele Sperre, davon {row['abgesessene_spiele']} abgesessen)
+                    <div style="font-size:0.875rem; font-weight:500; margin-top:8px; color:#1A1A1A;">
+                        Vergehen: <b>{row['grund']}</b> ({row['gesamt_sperre']} Spiele Sperre, davon {row['abgesessene_spiele']} abgesessen)
                     </div>
-                    <div style="font-size:12px; color:#566573; margin-top:4px;">
+                    <div style="font-size:0.75rem; color:#4A4A4A; margin-top:4px;">
                         Kader-ID: <code>{row['kader_id']}</code> · Nächstes Team-Spiel: <code>#{row['naechstes_spiel_id']}</code> am {row['naechstes_spiel_datum']}
                     </div>
                 </div>
@@ -998,11 +991,11 @@ with tab3:
             st.info("Aktuell keine offenen Urteilssperren gefunden.")
 
     with col_sp2:
-        st.markdown("#### 🧪 Live-Trigger-Test (Aufstellungs-Simulator)")
+        st.markdown("#### Live-Trigger-Test (Aufstellungs-Simulator)")
         with st.form("form_trigger_sperre"):
             if not df_sperren.empty:
                 sperr_options = [
-                    f"🚫 GESPERRT: {r['spieler']} ({r['mannschaft']}) -> Kader #{r['kader_id']} / Spiel #{r['naechstes_spiel_id']}"
+                    f"GESPERRT: {r['spieler']} ({r['mannschaft']}) -> Kader #{r['kader_id']} / Spiel #{r['naechstes_spiel_id']}"
                     for _, r in df_sperren.iterrows()
                 ]
                 auswahl_sperre = st.selectbox(
@@ -1018,7 +1011,7 @@ with tab3:
             spiel_in = st.number_input("Spiel-ID für Nominierung:", value=def_spiel, step=1)
             startelf_in = st.checkbox("Für die Startelf nominieren", value=True)
 
-            if st.form_submit_button("🚀 Spieler jetzt auf Spielberichtsbogen setzen"):
+            if st.form_submit_button(":material/send: Spieler jetzt auf Spielberichtsbogen setzen"):
                 try:
                     execute_stmt(
                         "INSERT INTO spieltag_kader (startelf, spiel_id, kader_id) VALUES (%s, %s, %s);",
@@ -1030,7 +1023,7 @@ with tab3:
                     )
                 except psycopg2.Error as e:
                     boom_alert(
-                        "BOOM! TRIGGER HAT DIE AUFSTELLUNG BLOCKIERT",
+                        "TRIGGER HAT DIE AUFSTELLUNG BLOCKIERT",
                         e.pgerror or str(e),
                     )
 
@@ -1039,7 +1032,7 @@ with tab3:
 # ---------------------------------------------------------------------
 with tab4:
     section_title(
-        "🏟️", "Use-Case 4: Exclusion Constraints (Kein Doppel-Platz & Kein Doppel-Pass)"
+        "grid", "Use-Case 4: Exclusion Constraints (Kein Doppel-Platz & Kein Doppel-Pass)"
     )
 
     col_ex1, col_ex2 = st.columns(2)
@@ -1048,10 +1041,10 @@ with tab4:
     with col_ex1:
         st.markdown(
             """
-        <div class="flip7-card">
-            <span class="flip7-badge badge-teal">CONSTRAINT 1: excl_kein_doppel_platz</span>
-            <h4 style="margin:8px 0 4px 0;">🏟️ Platzbelegung & 120-Minuten-Sperre</h4>
-            <p style="font-size:13.5px; margin:0;">
+        <div class="fd-card">
+            <span class="fd-badge badge-accent">Constraint 1: excl_kein_doppel_platz</span>
+            <h4 style="margin:8px 0 4px 0;">Platzbelegung & 120-Minuten-Sperre</h4>
+            <p style="font-size:0.875rem; margin:0;">
                 PostgreSQL prüft über einen GIST-Index mit <code>tsrange(anstoss_zeit, anstoss_zeit + 120 min) WITH &&</code>, dass sich auf keinem Platz zwei Spiele zeitlich überschneiden.
             </p>
         </div>
@@ -1089,7 +1082,7 @@ with tab4:
                     step=1,
                 )
 
-            if st.form_submit_button("📅 Spielansetzung prüfen & speichern"):
+            if st.form_submit_button(":material/event: Spielansetzung prüfen & speichern"):
                 try:
                     execute_stmt(
                         "INSERT INTO spiel (anstoss_zeit, heim_teilnahme_id, gast_teilnahme_id, platz_id, spieltag_id) VALUES (%s, %s, %s, %s, %s);",
@@ -1101,7 +1094,7 @@ with tab4:
                     )
                 except psycopg2.Error as e:
                     boom_alert(
-                        "BOOM! PLATZ- ODER TEAM-CONSTRAINT VERLETZT",
+                        "PLATZ- ODER TEAM-CONSTRAINT VERLETZT",
                         e.pgerror or str(e),
                     )
 
@@ -1109,10 +1102,10 @@ with tab4:
     with col_ex2:
         st.markdown(
             """
-        <div class="flip7-card">
-            <span class="flip7-badge badge-gold">CONSTRAINT 2: exclude_kein_doppelpass</span>
-            <h4 style="margin:8px 0 4px 0;">🪪 Spielerpass-Historie & Transfer-Prüfung</h4>
-            <p style="font-size:13.5px; margin:0;">
+        <div class="fd-card">
+            <span class="fd-badge badge-solid">Constraint 2: exclude_kein_doppelpass</span>
+            <h4 style="margin:8px 0 4px 0;">Spielerpass-Historie & Transfer-Prüfung</h4>
+            <p style="font-size:0.875rem; margin:0;">
                 Verhindert über <code>daterange(gueltig_ab, gueltig_bis, '[]') WITH &&</code>, dass ein Spieler zur selben Zeit zwei gültige Spielerpässe besitzt.
             </p>
         </div>
@@ -1146,7 +1139,7 @@ with tab4:
                 ab_date = st.text_input("Gültig ab (YYYY-MM-DD):", value="2026-11-01")
                 bis_date = st.text_input("Gültig bis (YYYY-MM-DD):", value="2027-06-30")
 
-            if st.form_submit_button("🪪 Spielerpass im Verbandssystem beantragen"):
+            if st.form_submit_button(":material/badge: Spielerpass im Verbandssystem beantragen"):
                 try:
                     execute_stmt(
                         "INSERT INTO spielerpass (gueltig_ab, gueltig_bis, person_id, verein_id) VALUES (%s, %s, %s, %s);",
@@ -1158,7 +1151,7 @@ with tab4:
                     )
                 except psycopg2.Error as e:
                     boom_alert(
-                        "BOOM! DOPPEL-PASS ODER DATUMS-CHECK VERLETZT",
+                        "DOPPEL-PASS ODER DATUMS-CHECK VERLETZT",
                         e.pgerror or str(e),
                     )
 
@@ -1166,17 +1159,17 @@ with tab4:
 # TAB 5: SPORTGERICHT & 25-REGELN-AUDITOR (03_pruefungen_2.sql)
 # ---------------------------------------------------------------------
 with tab5:
-    section_title("⚖️", "Use-Case 5: Sportgerichtsurteile fällen & 25-Regeln-Auditor")
+    section_title("scale", "Use-Case 5: Sportgerichtsurteile fällen & 25-Regeln-Auditor")
 
     col_sg1, col_sg2 = st.columns([3, 2])
     df_rote = run_query("SELECT * FROM v_rote_karten_urteile;")
 
     with col_sg1:
-        st.markdown("#### 📕 Alle Roten Karten & Sportgerichts-Verfahren (View)")
+        st.markdown("#### Alle Roten Karten & Sportgerichts-Verfahren (View)")
         st.dataframe(df_rote, use_container_width=True, hide_index=True)
 
     with col_sg2:
-        st.markdown("#### 🔨 Neues Urteil für offene Rote Karte fällen")
+        st.markdown("#### Neues Urteil für offene Rote Karte fällen")
         offene_rote = df_rote[df_rote["hat_urteil"] == False]
         katalog_df = run_query(
             "SELECT strafe_id, vergehen || ' (Standard: ' || standard_sperre_spiele || ' Sp. / ' || geldstrafe_eur || ' €)' AS label, standard_sperre_spiele, geldstrafe_eur FROM strafenkatalog ORDER BY strafe_id;"
@@ -1213,7 +1206,7 @@ with tab5:
                     step=25.0,
                 )
 
-                if st.form_submit_button("⚖️ Rechtskräftiges Urteil speichern"):
+                if st.form_submit_button(":material/gavel: Rechtskräftiges Urteil speichern"):
                     try:
                         execute_stmt(
                             """INSERT INTO urteil (datum, sperre_spiele, tatsaechliche_geldstrafe, spielereignis_id, strafe_id)
@@ -1234,15 +1227,15 @@ with tab5:
                         boom_alert("Fehler beim Urteilsspruch", e.pgerror or str(e))
         else:
             st.success(
-                "✅ Alle Roten Karten sind bereits vom Sportgericht verhandelt worden!"
+                "Alle Roten Karten sind bereits vom Sportgericht verhandelt worden!"
             )
 
-    section_title("✅", "Live-Datenbank-Audit (Alle 25 Regeln aus 03_pruefungen_2.sql)")
+    section_title("check", "Live-Datenbank-Audit (Alle 25 Regeln aus 03_pruefungen_2.sql)")
     st.caption(
         "Prüft in Echtzeit sämtliche 25 Geschäftsregeln (Spielberechtigungen, Pässe, Schiedsrichter-Neutralität, Wechsel-Logik, Torminuten und Trigger-Regeln):"
     )
 
-    if st.button("🔍 Alle 25 Konsistenz-Prüfungen jetzt live gegen Supabase ausführen"):
+    if st.button(":material/search: Alle 25 Konsistenz-Prüfungen jetzt live gegen Supabase ausführen"):
         audit_sql = """
         WITH
         gespielt AS (SELECT DISTINCT spiel_id FROM spieltag_kader),
