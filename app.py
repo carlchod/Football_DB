@@ -40,43 +40,34 @@ with tab1:
     staffeln = run_query(
         "SELECT DISTINCT staffel_id, liga_name FROM v_ligatabelle ORDER BY staffel_id;"
     )
-    auswahl = st.selectbox("Staffel auswählen:", staffeln["liga_name"])
-    st_id = int(
-        staffeln.loc[staffeln["liga_name"] == auswahl, "staffel_id"].values[0]
-    )
 
-    df_tabelle = run_query(
-        "SELECT platz, mannschaft, spiele, s, u, n, tore, punkteabzug, punkte FROM v_ligatabelle WHERE staffel_id = %s ORDER BY platz;",
-        (st_id,),
-    )
-    st.dataframe(df_tabelle, use_container_width=True, hide_index=True)
+    if not staffeln.empty:
+        auswahl = st.selectbox("Staffel auswählen:", staffeln["liga_name"])
+        st_id = int(
+            staffeln.loc[
+                staffeln["liga_name"] == auswahl, "staffel_id"
+            ].values[0]
+        )
 
-    st.subheader("Sportgerichtsurteile & Offene Rote Karten")
-    df_urteile = run_query("""
-        SELECT p.vorname || ' ' || p.nachname AS spieler, v.name AS verein, k.art, 
-               sp.anstoss_zeit::date AS spiel_datum, COALESCE(sk.vergehen, '⏳ Verfahren noch offen (Vorläufige Sperre)') AS status,
-               COALESCE(u.sperre_spiele, 2) AS sperre_spiele, COALESCE(u.tatsaechliche_geldstrafe, 0) AS strafe_eur
-        FROM karte k
-        JOIN spielereignis e ON e.spielereignis_id = k.spielereignis_id
-        JOIN spiel sp ON sp.spiel_id = e.spiel_id
-        JOIN spieltag_kader stk ON stk.spieltag_kader_id = k.spieltag_kader_id
-        JOIN kader ka ON ka.kader_id = stk.kader_id
-        JOIN person p ON p.person_id = ka.person_id
-        JOIN staffel_teilnahme st ON st.teilnahme_id = ka.teilnahme_id
-        JOIN mannschaft m ON m.mannschaft_id = st.mannschaft_id
-        JOIN verein v ON v.verein_id = m.verein_id
-        LEFT JOIN urteil u ON u.karte_id = k.spielereignis_id
-        LEFT JOIN strafenkatalog sk ON sk.strafe_id = u.strafe_id
-        WHERE k.art = 'Rot'
-        ORDER BY sp.anstoss_zeit DESC;
-    """)
+        df_tabelle = run_query(
+            "SELECT platz, mannschaft, spiele, s, u, n, tore, punkteabzug, punkte FROM v_ligatabelle WHERE staffel_id = %s ORDER BY platz;",
+            (st_id,),
+        )
+        st.dataframe(df_tabelle, use_container_width=True, hide_index=True)
+    else:
+        st.warning(
+            "Noch keine Spieldaten vorhanden. Bitte 02_testdaten_2.sql laden."
+        )
+
+    st.subheader("Sportgerichtsurteile & Offene Rote Karten (View)")
+    df_urteile = run_query("SELECT * FROM v_rote_karten_urteile;")
     st.dataframe(df_urteile, use_container_width=True, hide_index=True)
 
 # --- TAB 2: EXCLUSION CONSTRAINT ---
 with tab2:
     st.subheader("Live-Test: Kein Doppel-Platz (Exclusion Constraint)")
     st.info(
-        "💡 **Vorführ-Tipp:** Spiel #97 findet am **08.11.2026 um 14:00 Uhr** auf **Platz 62** statt. Wenn du unten versuchst, ein Spiel um **14:30 Uhr** auf **Platz 62** anzusetzen, schlägt der PostgreSQL Exclusion Constraint sofort an!"
+        "💡 **Vorführ-Tipp:** Spiel #97 findet am **08.11.2026 um 14:00 Uhr** auf **Platz 62** statt. Wenn du unten versuchst, ein Spiel um **14:30 Uhr** auf **Platz 62** anzusetzen, schlägt der PostgreSQL Exclusion Constraint (`excl_kein_doppel_platz`) sofort an!"
     )
 
     with st.form("form_doppel_platz"):
@@ -104,7 +95,7 @@ with tab3:
     st.subheader("Live-Test: Gesperrte Spieler blockieren (Trigger)")
     df_sperren = run_query("SELECT * FROM v_aktive_sperren;")
     st.write(
-        "**Aktuell gesperrte Spieler zum Stichtag 02.11.2026 (dürfen am nächsten Spieltag nicht aufgestellt werden):**"
+        "**Spieler mit aktiver Sportgerichtssperre zum Stichtag 02.11.2026 (dürfen im nächsten Spiel nicht aufgestellt werden):**"
     )
     st.dataframe(df_sperren, use_container_width=True, hide_index=True)
 
@@ -119,7 +110,7 @@ with tab3:
 
     with st.form("form_sperre_testen"):
         st.caption(
-            "Die Werte des ersten gesperrten Spielers aus der Liste sind bereits voreingestellt:"
+            "Die Werte des ersten gesperrten Spielers aus der Tabelle oben sind bereits voreingestellt:"
         )
         kader_id_in = st.number_input("Kader ID", value=default_kader)
         spiel_id_in = st.number_input("Nächstes Spiel ID", value=default_spiel)
@@ -145,6 +136,7 @@ with tab4:
             (SELECT count(*) FROM spiel) AS spiele_gesamt,
             (SELECT count(DISTINCT spiel_id) FROM spieltag_kader) AS spiele_gespielt,
             (SELECT count(*) FROM tor) AS tore_gesamt,
-            (SELECT count(*) FROM karte) AS karten_gesamt;
+            (SELECT count(*) FROM karte) AS karten_gesamt,
+            (SELECT count(*) FROM urteil) AS urteile_gesamt;
     """)
     st.dataframe(df_stats, use_container_width=True, hide_index=True)
